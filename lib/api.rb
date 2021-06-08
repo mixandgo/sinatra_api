@@ -1,6 +1,6 @@
 require "sinatra/base"
 
-class SnakeGame < Sinatra::Base
+class Api < Sinatra::Base
   set :dump_errors, true
   set :logging, true
   set :raise_errors, false

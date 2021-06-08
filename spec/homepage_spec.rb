@@ -1,7 +1,7 @@
 require "spec_helper"
 
 RSpec.describe "Homepage" do
-  let(:app) { SnakeGame.new }
+  let(:app) { Api.new }
 
   describe "GET /" do
     it "returns an empty JSON response" do

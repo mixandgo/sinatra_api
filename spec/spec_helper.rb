@@ -16,7 +16,7 @@
 ENV["RACK_ENV"] = "test"
 
 require "rack/test"
-require "snake_game"
+require "api"
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
