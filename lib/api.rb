@@ -10,4 +10,14 @@ class Api < Sinatra::Base
   get "/" do
     {}.to_json
   end
+
+  post "/auth" do
+    halt 500, { errors: ["Missing username/password params"] }.to_json if params["username"].nil?
+    halt 500, { errors: ["Missing username/password params"] }.to_json if params["password"].nil?
+    hmac_secret = 'my$ecretK3y'
+    payload = { username: params["username"] }
+    token = JWT.encode(payload, hmac_secret, 'HS256')
+
+    { token: token }.to_json
+  end
 end
