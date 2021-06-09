@@ -1,4 +1,5 @@
 require "sinatra/base"
+require "jwt"
 
 class Api < Sinatra::Base
   set :dump_errors, true

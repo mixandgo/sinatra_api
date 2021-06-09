@@ -17,6 +17,7 @@ ENV["RACK_ENV"] = "test"
 
 require "rack/test"
 require "api"
+require "spec_utils"
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
@@ -103,6 +104,7 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
   include Rack::Test::Methods
+  include SpecUtils
 
   # config.before(:all) do
   #   DatabaseCleaner.clean

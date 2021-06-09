@@ -3,6 +3,7 @@
 source "https://rubygems.org"
 
 gem "sinatra", require: "sinatra/base"
+gem "jwt"
 
 
 group :development do

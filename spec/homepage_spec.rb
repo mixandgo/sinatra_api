@@ -6,8 +6,8 @@ RSpec.describe "Homepage" do
   describe "GET /" do
     it "returns an empty JSON response" do
       get "/"
-      json_body = JSON.parse(last_response.body)
-      expect(json_body).to eq({})
+      body = json_decode(last_response.body)
+      expect(body).to eq({})
     end
   end
 end
