@@ -1,5 +1,16 @@
 require "sinatra/base"
 require "jwt"
+require "sequel"
+
+DB = Sequel.sqlite
+
+DB.create_table :presentations do
+  primary_key :id
+  String :name
+  Time :created_at
+end
+
+require "models/presentation"
 
 class Api < Sinatra::Base
   set :dump_errors, true
@@ -20,4 +31,16 @@ class Api < Sinatra::Base
 
     { token: token }.to_json
   end
+
+  get "/presentations" do
+    DB[:presentations].all.to_json
+  end
+
+  post "/presentations" do
+    halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
+    Presentation.create(name: "MyPresentation").to_json
+  end
+
+  # start the server if ruby file executed directly
+  run! if app_file == $0
 end
