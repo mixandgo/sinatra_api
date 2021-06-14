@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe "Create presentation" do
+RSpec.describe "Presentations" do
   let(:app) { Api.new }
 
   describe "POST /presentations" do
