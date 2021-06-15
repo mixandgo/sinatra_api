@@ -11,7 +11,15 @@ DB.create_table :presentations do
   Time :created_at
 end
 
+DB.create_table :questions do
+  primary_key :id
+  String :name
+  Integer :presentation_id
+  Time :created_at
+end
+
 require_relative "models/presentation"
+require_relative "models/question"
 
 class Api < Sinatra::Base
   use Rack::JSONBodyParser
@@ -47,6 +55,17 @@ class Api < Sinatra::Base
   post "/presentations" do
     halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
     Presentation.create(name: params["name"]).to_json
+  end
+
+  get "/presentations/:id/questions" do
+    Question.where(presentation_id: params["id"]).all.to_json
+  end
+
+  post "/presentations/:id/questions" do
+    halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
+    status 201
+    presentation = Presentation.where(id: params["id"]).first
+    Question.create(name: params["name"], presentation_id: presentation.id).to_json
   end
 
   # start the server if ruby file executed directly
