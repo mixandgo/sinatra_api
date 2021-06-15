@@ -1,8 +1,6 @@
 require "spec_helper"
 
 RSpec.describe "Presentations" do
-  let(:app) { Api.new }
-
   describe "POST /presentations" do
     it "requires authentication" do
       post "/presentations", { name: "MyPresentation" }
@@ -15,7 +13,6 @@ RSpec.describe "Presentations" do
       before :each do
         post "/auth", { username: "jdoe", password: "secret" }
         token = json_decode(last_response.body)["token"]
-        header "Content-Type", "application/json"
         header "Authorization", "Bearer #{token}"
       end
 
@@ -31,13 +28,13 @@ RSpec.describe "Presentations" do
       end
 
       it "persists the presentation created" do
-        post "/presentations", { name: "MyPresentation" }
+        post "/presentations", { name: "NewPresentation" }
         get "/presentations"
         expect(last_response.status).to eq(200)
         body = json_decode(last_response.body)
         expect(body.first).to match(
           "id" => (be > 0),
-          "name" => "MyPresentation",
+          "name" => "NewPresentation",
           "created_at" => an_instance_of(String)
         )
       end

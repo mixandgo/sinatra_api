@@ -19,6 +19,10 @@ require "rack/test"
 require "api"
 require "spec_utils"
 
+def app
+  Api
+end
+
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
@@ -107,10 +111,9 @@ RSpec.configure do |config|
   include SpecUtils
 
   # config.before(:all) do
-  #   DatabaseCleaner.clean
   # end
 
-  # config.after(:each) do
-  #   DatabaseCleaner.clean
-  # end
+  config.after(:each) do
+    DB[:presentations].delete
+  end
 end

@@ -1,6 +1,7 @@
 require "sinatra/base"
 require "jwt"
 require "sequel"
+require "rack/contrib"
 
 DB = Sequel.sqlite
 
@@ -10,24 +11,31 @@ DB.create_table :presentations do
   Time :created_at
 end
 
-require "models/presentation"
+require_relative "models/presentation"
 
 class Api < Sinatra::Base
-  set :dump_errors, true
+  use Rack::JSONBodyParser
+
+  set :default_content_type, "application/json"
   set :logging, true
-  set :raise_errors, false
-  set :show_exceptions, false
+
+  configure :test do
+    set :dump_errors, true
+    set :raise_errors, true
+    set :show_exceptions, false
+  end
 
   get "/" do
     {}.to_json
   end
 
   post "/auth" do
-    halt 500, { errors: ["Missing username/password params"] }.to_json if params["username"].nil?
-    halt 500, { errors: ["Missing username/password params"] }.to_json if params["password"].nil?
-    hmac_secret = 'my$ecretK3y'
+    if params["username"].nil? || params["password"].nil?
+      halt 500, { errors: ["Missing username/password params"] }.to_json
+    end
+
     payload = { username: params["username"] }
-    token = JWT.encode(payload, hmac_secret, 'HS256')
+    token = JWT.encode(payload, "my$ecretK3y", "HS256")
 
     { token: token }.to_json
   end
@@ -38,7 +46,7 @@ class Api < Sinatra::Base
 
   post "/presentations" do
     halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
-    Presentation.create(name: "MyPresentation").to_json
+    Presentation.create(name: params["name"]).to_json
   end
 
   # start the server if ruby file executed directly

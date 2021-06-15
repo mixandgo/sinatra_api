@@ -6,6 +6,7 @@ gem "sinatra", require: "sinatra/base"
 gem "jwt"
 gem "sequel"
 gem "sqlite3"
+gem "rack-contrib"
 
 group :development do
   gem "pry-byebug"
@@ -18,4 +19,8 @@ group :test do
   gem "webmock"
   gem "simplecov", require: false
 # gem "database_cleaner"
+end
+
+group :development, :test do
+  gem "pry"
 end

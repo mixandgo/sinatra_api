@@ -1,8 +1,6 @@
 require "spec_helper"
 
 RSpec.describe "Auth" do
-  let(:app) { Api.new }
-
   describe "POST /auth" do
     it "requires username & password params" do
       post "/auth"
