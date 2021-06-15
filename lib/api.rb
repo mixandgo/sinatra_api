@@ -58,14 +58,15 @@ class Api < Sinatra::Base
   end
 
   get "/presentations/:id/questions" do
-    Question.where(presentation_id: params["id"]).all.to_json
+    presentation = Presentation.where(id: params["id"]).first
+    presentation.questions.to_json
   end
 
   post "/presentations/:id/questions" do
     halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
     status 201
     presentation = Presentation.where(id: params["id"]).first
-    Question.create(name: params["name"], presentation_id: presentation.id).to_json
+    presentation.add_question(name: params["name"]).to_json
   end
 
   # start the server if ruby file executed directly
