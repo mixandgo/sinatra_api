@@ -49,33 +49,37 @@ RSpec.describe "Questions" do
         expect(body).to include(hash_including("name" => "Option2"))
       end
 
-      context "when the question is invalid" do
+      context "when the required params are missing" do
         it "returns an error" do
           post "/presentations", { name: "MyPresentation" }
           presentation_id = JSON.parse(last_response.body)["id"]
-          post "/questions", { name: "", presentation_id: presentation_id }
+          post "/questions", { presentation_id: presentation_id }
           expect(last_response.status).to eq(422)
           json_body = json_decode(last_response.body)
-          expect(json_body["errors"]).to include("name is missing")
-          expect(json_body["errors"]).to include("category is missing")
+          expect(json_body["errors"]).to include("name" => ["is missing"])
+          expect(json_body["errors"]).to include("category" => ["is missing"])
         end
       end
 
-      context "when the presentation id is missing" do
+      context "when the presentation_id is missing" do
         it "returns an error" do
-          post "/questions", { name: "" }
+          post "/questions", { name: "MyQuestion", category: "marketing" }
           expect(last_response.status).to eq(422)
           json_body = json_decode(last_response.body)
-          expect(json_body["errors"]).to include("presentation_id is missing")
+          expect(json_body["errors"]).to eq("presentation_id" => ["is missing"])
         end
       end
 
-      context "when the presentation id is invalid" do
+      context "when a Presentation with the provided id doesn't exist" do
         it "returns an error" do
-          post "/questions", { name: "", presentation_id: 1 }
+          post "/questions", {
+            name: "MyQuestion",
+            category: "marketing",
+            presentation_id: 1
+          }
           expect(last_response.status).to eq(422)
           json_body = json_decode(last_response.body)
-          expect(json_body["errors"]).to include("presentation not found")
+          expect(json_body["errors"]).to eq("presentation_id" => ["is invalid"])
         end
       end
     end

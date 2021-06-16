@@ -115,5 +115,8 @@ RSpec.configure do |config|
 
   config.after(:each) do
     DB[:presentations].delete
+    DB[:questions].delete
+    DB[:options].delete
+    DB[:votes].delete
   end
 end

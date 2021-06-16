@@ -26,9 +26,16 @@ DB.create_table :options do
   Time :created_at
 end
 
+DB.create_table :votes do
+  primary_key :id
+  Integer :option_id
+  Time :created_at
+end
+
 require_relative "models/presentation"
 require_relative "models/question"
 require_relative "models/option"
+require_relative "models/vote"
 
 class Api < Sinatra::Base
   use Rack::JSONBodyParser
@@ -62,7 +69,7 @@ class Api < Sinatra::Base
   end
 
   post "/presentations" do
-    halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
+    authenticate!
     Presentation.create(name: params["name"]).to_json
   end
 
@@ -72,20 +79,17 @@ class Api < Sinatra::Base
   end
 
   post "/questions" do
-    halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
+    authenticate!
 
-    errors = []
-    errors << "name is missing" if param_required("name")
-    errors << "category is missing" if param_required("category")
-    errors << "presentation_id is missing" if param_required("presentation_id")
+    question = Question.new(
+      name: params["name"],
+      category: params["category"],
+      presentation_id: params["presentation_id"]
+    )
+    halt 422, { errors: question.errors }.to_json unless question.valid?
 
-    presentation = Presentation.where(id: params["presentation_id"]).first
-    errors << "presentation not found" if presentation.nil?
-
-    halt 422, { errors: errors }.to_json unless errors.empty?
-
+    question.save
     status 201
-    question = Question.create(name: params["name"], category: params["category"], presentation_id: presentation.id)
 
     if !params["options"].nil?
       options = params["options"].map { |opt| question.add_option(opt) }
@@ -99,15 +103,24 @@ class Api < Sinatra::Base
   end
 
   post "/votes" do
-    halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
+    authenticate!
+
+    vote = Vote.new(option_id: params["option_id"])
+    halt 422, { errors: vote.errors }.to_json unless vote.valid?
+
     status 201
-    {}.to_json
+    vote.save
+    vote.to_json
   end
 
   def param_required(name)
     params[name].nil? || params[name].empty?
   end
 
+  def authenticate!
+    halt 401, { errors: ["You need to be authenticated"] }
+      .to_json if env["HTTP_AUTHORIZATION"].nil?
+  end
   # start the server if ruby file executed directly
   run! if app_file == $0
 end

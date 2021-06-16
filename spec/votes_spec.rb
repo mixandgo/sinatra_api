@@ -31,7 +31,30 @@ RSpec.describe "Votes" do
         option_id = json_decode(last_response.body).first["id"]
         post "/votes", { option_id: option_id }
         expect(last_response.status).to eq(201)
-        expect(last_response.body).to eq("{}")
+        body = json_decode(last_response.body)
+        expect(body).to match(
+          "id" => (be > 0),
+          "option_id" => option_id,
+          "created_at" => an_instance_of(String)
+        )
+      end
+
+      context "when option_id is missing" do
+        it "returns an error" do
+          post "/votes", {}
+          expect(last_response.status).to eq(422)
+          json_body = json_decode(last_response.body)
+          expect(json_body["errors"]).to eq("option_id" => ["is missing"])
+        end
+      end
+
+      context "when an Option with the provided id doesn't exist" do
+        it "returns an error" do
+          post "/votes", { option_id: 1 }
+          expect(last_response.status).to eq(422)
+          json_body = json_decode(last_response.body)
+          expect(json_body["errors"]).to eq("option_id" => ["is invalid"])
+        end
       end
     end
   end
