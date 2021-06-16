@@ -19,8 +19,16 @@ DB.create_table :questions do
   Time :created_at
 end
 
+DB.create_table :options do
+  primary_key :id
+  String :name
+  Integer :question_id
+  Time :created_at
+end
+
 require_relative "models/presentation"
 require_relative "models/question"
+require_relative "models/option"
 
 class Api < Sinatra::Base
   use Rack::JSONBodyParser
@@ -73,10 +81,17 @@ class Api < Sinatra::Base
 
     status 201
     presentation = Presentation.where(id: params["id"]).first
-    presentation.add_question(
-      name: params["name"],
-      category: params["category"]
-    ).to_json
+    question = Question.create(name: params["name"], category: params["category"], presentation_id: presentation.id)
+
+    if !params["options"].nil?
+      options = params["options"].map { |opt| question.add_option(opt) }
+    end
+
+    question.to_json
+  end
+
+  get "/presentations/:presentation_id/questions/:question_id/options" do
+    Option.where(question_id: params["question_id"]).to_json
   end
 
   # start the server if ruby file executed directly

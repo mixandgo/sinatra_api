@@ -20,7 +20,11 @@ RSpec.describe "Questions" do
         post "/presentations", { name: "MyPresentation" }
         presentation_id = JSON.parse(last_response.body)["id"]
         post "/presentations/#{presentation_id}/questions",
-          { name: "MyQuestion", category: "marketing" }
+          {
+            name: "MyQuestion",
+            category: "marketing",
+            options: [{ name: "Option1" }, { name: "Option2" }]
+          }
         expect(last_response.status).to eq(201)
         body = json_decode(last_response.body)
         expect(body).to match(
@@ -35,6 +39,13 @@ RSpec.describe "Questions" do
         expect(last_response.status).to eq(200)
         body = json_decode(last_response.body)
         expect(body.size).to eq(1)
+
+        question_id = body.first["id"]
+        get "/presentations/#{presentation_id}/questions/#{question_id}/options"
+        body = json_decode(last_response.body)
+        expect(body.size).to eq(2)
+        expect(body).to include(hash_including("name" => "Option1"))
+        expect(body).to include(hash_including("name" => "Option2"))
       end
 
       context "when the question is invalid" do
