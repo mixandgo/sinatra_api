@@ -14,6 +14,7 @@ end
 DB.create_table :questions do
   primary_key :id
   String :name
+  String :category
   Integer :presentation_id
   Time :created_at
 end
@@ -63,10 +64,19 @@ class Api < Sinatra::Base
   end
 
   post "/presentations/:id/questions" do
+    errors = []
     halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
+    errors << "name is missing" if params["name"].nil? || params["name"].empty?
+    errors << "category is missing" if params["category"].nil? || params["category"].empty?
+
+    halt 422, { errors: errors }.to_json unless errors.empty?
+
     status 201
     presentation = Presentation.where(id: params["id"]).first
-    presentation.add_question(name: params["name"]).to_json
+    presentation.add_question(
+      name: params["name"],
+      category: params["category"]
+    ).to_json
   end
 
   # start the server if ruby file executed directly

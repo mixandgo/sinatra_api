@@ -19,12 +19,14 @@ RSpec.describe "Questions" do
       it "creates a question" do
         post "/presentations", { name: "MyPresentation" }
         presentation_id = JSON.parse(last_response.body)["id"]
-        post "/presentations/#{presentation_id}/questions", { name: "MyQuestion" }
+        post "/presentations/#{presentation_id}/questions",
+          { name: "MyQuestion", category: "marketing" }
         expect(last_response.status).to eq(201)
         body = json_decode(last_response.body)
         expect(body).to match(
           "id" => (be > 0),
           "name" => "MyQuestion",
+          "category" => "marketing",
           "presentation_id" => presentation_id,
           "created_at" => an_instance_of(String)
         )
@@ -33,6 +35,18 @@ RSpec.describe "Questions" do
         expect(last_response.status).to eq(200)
         body = json_decode(last_response.body)
         expect(body.size).to eq(1)
+      end
+
+      context "when the question is invalid" do
+        it "returns an error" do
+          post "/presentations", { name: "MyPresentation" }
+          presentation_id = JSON.parse(last_response.body)["id"]
+          post "/presentations/#{presentation_id}/questions", { name: "" }
+          expect(last_response.status).to eq(422)
+          json_body = json_decode(last_response.body)
+          expect(json_body["errors"]).to include("name is missing")
+          expect(json_body["errors"]).to include("category is missing")
+        end
       end
     end
   end
