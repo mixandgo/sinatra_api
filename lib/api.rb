@@ -94,6 +94,12 @@ class Api < Sinatra::Base
     Option.where(question_id: params["question_id"]).to_json
   end
 
+  post "/votes" do
+    halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
+    status 201
+    {}.to_json
+  end
+
   # start the server if ruby file executed directly
   run! if app_file == $0
 end
