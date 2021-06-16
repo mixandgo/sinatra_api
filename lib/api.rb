@@ -66,21 +66,25 @@ class Api < Sinatra::Base
     Presentation.create(name: params["name"]).to_json
   end
 
-  get "/presentations/:id/questions" do
-    presentation = Presentation.where(id: params["id"]).first
+  get "/questions" do
+    presentation = Presentation.where(id: params["presentation_id"]).first
     presentation.questions.to_json
   end
 
-  post "/presentations/:id/questions" do
-    errors = []
+  post "/questions" do
     halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
-    errors << "name is missing" if params["name"].nil? || params["name"].empty?
-    errors << "category is missing" if params["category"].nil? || params["category"].empty?
+
+    errors = []
+    errors << "name is missing" if param_required("name")
+    errors << "category is missing" if param_required("category")
+    errors << "presentation_id is missing" if param_required("presentation_id")
+
+    presentation = Presentation.where(id: params["presentation_id"]).first
+    errors << "presentation not found" if presentation.nil?
 
     halt 422, { errors: errors }.to_json unless errors.empty?
 
     status 201
-    presentation = Presentation.where(id: params["id"]).first
     question = Question.create(name: params["name"], category: params["category"], presentation_id: presentation.id)
 
     if !params["options"].nil?
@@ -90,7 +94,7 @@ class Api < Sinatra::Base
     question.to_json
   end
 
-  get "/presentations/:presentation_id/questions/:question_id/options" do
+  get "/options" do
     Option.where(question_id: params["question_id"]).to_json
   end
 
@@ -98,6 +102,10 @@ class Api < Sinatra::Base
     halt 401, { errors: ["You need to be authenticated"] }.to_json if env["HTTP_AUTHORIZATION"].nil?
     status 201
     {}.to_json
+  end
+
+  def param_required(name)
+    params[name].nil? || params[name].empty?
   end
 
   # start the server if ruby file executed directly

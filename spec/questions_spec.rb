@@ -1,9 +1,9 @@
 require "spec_helper"
 
 RSpec.describe "Questions" do
-  describe "POST /presentations/:id/questions" do
+  describe "POST /questions" do
     it "requires authentication" do
-      post "/presentations/1/questions", { name: "MyQuestion" }
+      post "/questions", { name: "MyQuestion", presentation_id: 1 }
       expect(last_response.status).to eq(401)
       json_body = json_decode(last_response.body)
       expect(json_body["errors"]).to include("You need to be authenticated")
@@ -19,10 +19,11 @@ RSpec.describe "Questions" do
       it "creates a question" do
         post "/presentations", { name: "MyPresentation" }
         presentation_id = JSON.parse(last_response.body)["id"]
-        post "/presentations/#{presentation_id}/questions",
+        post "/questions",
           {
             name: "MyQuestion",
             category: "marketing",
+            presentation_id: presentation_id,
             options: [{ name: "Option1" }, { name: "Option2" }]
           }
         expect(last_response.status).to eq(201)
@@ -35,13 +36,13 @@ RSpec.describe "Questions" do
           "created_at" => an_instance_of(String)
         )
 
-        get "/presentations/#{presentation_id}/questions"
+        get "/questions?presentation_id=#{presentation_id}"
         expect(last_response.status).to eq(200)
         body = json_decode(last_response.body)
         expect(body.size).to eq(1)
 
         question_id = body.first["id"]
-        get "/presentations/#{presentation_id}/questions/#{question_id}/options"
+        get "/options?presentation_id=#{presentation_id}&question_id=#{question_id}"
         body = json_decode(last_response.body)
         expect(body.size).to eq(2)
         expect(body).to include(hash_including("name" => "Option1"))
@@ -52,11 +53,29 @@ RSpec.describe "Questions" do
         it "returns an error" do
           post "/presentations", { name: "MyPresentation" }
           presentation_id = JSON.parse(last_response.body)["id"]
-          post "/presentations/#{presentation_id}/questions", { name: "" }
+          post "/questions", { name: "", presentation_id: presentation_id }
           expect(last_response.status).to eq(422)
           json_body = json_decode(last_response.body)
           expect(json_body["errors"]).to include("name is missing")
           expect(json_body["errors"]).to include("category is missing")
+        end
+      end
+
+      context "when the presentation id is missing" do
+        it "returns an error" do
+          post "/questions", { name: "" }
+          expect(last_response.status).to eq(422)
+          json_body = json_decode(last_response.body)
+          expect(json_body["errors"]).to include("presentation_id is missing")
+        end
+      end
+
+      context "when the presentation id is invalid" do
+        it "returns an error" do
+          post "/questions", { name: "", presentation_id: 1 }
+          expect(last_response.status).to eq(422)
+          json_body = json_decode(last_response.body)
+          expect(json_body["errors"]).to include("presentation not found")
         end
       end
     end
