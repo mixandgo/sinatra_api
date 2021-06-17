@@ -36,13 +36,16 @@ RSpec.describe "Questions" do
           "created_at" => an_instance_of(String)
         )
 
-        get "/questions?presentation_id=#{presentation_id}"
+        get "/questions", { presentation_id: presentation_id }
         expect(last_response.status).to eq(200)
         body = json_decode(last_response.body)
         expect(body.size).to eq(1)
 
         question_id = body.first["id"]
-        get "/options?presentation_id=#{presentation_id}&question_id=#{question_id}"
+        get "/options", {
+          presentation_id: presentation_id,
+          question_id: question_id
+        }
         body = json_decode(last_response.body)
         expect(body.size).to eq(2)
         expect(body).to include(hash_including("name" => "Option1"))
@@ -81,6 +84,40 @@ RSpec.describe "Questions" do
           json_body = json_decode(last_response.body)
           expect(json_body["errors"]).to eq("presentation_id" => ["is invalid"])
         end
+      end
+    end
+  end
+
+  describe "GET /questions" do
+    it "requires authentication" do
+      get "/questions", { presentation_id: 1 }
+      expect(last_response.status).to eq(401)
+      json_body = json_decode(last_response.body)
+      expect(json_body["errors"]).to include("You need to be authenticated")
+    end
+
+    context "when client is authenticated" do
+      before :each do
+        post "/auth", { username: "jdoe", password: "secret" }
+        token = json_decode(last_response.body)["token"]
+        header "Authorization", "Bearer #{token}"
+      end
+
+      it "returns all questions" do
+        post "/presentations", { name: "MyPresentation" }
+        presentation_id = JSON.parse(last_response.body)["id"]
+
+        post "/questions", {
+          name: "MyQuestion",
+          category: "marketing",
+          presentation_id: presentation_id
+        }
+        expect(last_response.status).to eq(201)
+
+        get "/questions", { presentation_id: presentation_id }
+        expect(last_response.status).to eq(200)
+        body = json_decode(last_response.body)
+        expect(body.size).to eq(1)
       end
     end
   end

@@ -40,4 +40,29 @@ RSpec.describe "Presentations" do
       end
     end
   end
+
+  describe "GET /presentations" do
+    it "requires authentication" do
+      get "/presentations"
+      expect(last_response.status).to eq(401)
+      json_body = json_decode(last_response.body)
+      expect(json_body["errors"]).to include("You need to be authenticated")
+    end
+
+    context "when client is authenticated" do
+      before :each do
+        post "/auth", { username: "jdoe", password: "secret" }
+        token = json_decode(last_response.body)["token"]
+        header "Authorization", "Bearer #{token}"
+      end
+
+      it "returns all presentations" do
+        post "/presentations", { name: "MyPresentation" }
+        get "/presentations"
+        expect(last_response.status).to eq(200)
+        body = json_decode(last_response.body)
+        expect(body.size).to eq(1)
+      end
+    end
+  end
 end

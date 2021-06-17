@@ -65,6 +65,7 @@ class Api < Sinatra::Base
   end
 
   get "/presentations" do
+    authenticate!
     DB[:presentations].all.to_json
   end
 
@@ -74,6 +75,8 @@ class Api < Sinatra::Base
   end
 
   get "/questions" do
+    authenticate!
+
     presentation = Presentation.where(id: params["presentation_id"]).first
     presentation.questions.to_json
   end

@@ -27,7 +27,10 @@ RSpec.describe "Votes" do
             options: [{ name: "Option1" }]
           }
         question_id = JSON.parse(last_response.body)["id"]
-        get "/options?presentation_id=#{presentation_id}&question_id=#{question_id}"
+        get "/options", {
+          presentation_id: presentation_id,
+          question_id: question_id
+        }
         option_id = json_decode(last_response.body).first["id"]
         post "/votes", { option_id: option_id }
         expect(last_response.status).to eq(201)
