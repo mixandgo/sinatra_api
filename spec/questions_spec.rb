@@ -105,6 +105,7 @@ RSpec.describe "Questions" do
 
       it "returns all questions" do
         post "/presentations", { name: "MyPresentation" }
+        expect(last_response.status).to eq(201)
         presentation_id = JSON.parse(last_response.body)["id"]
 
         post "/questions", {
@@ -118,6 +119,16 @@ RSpec.describe "Questions" do
         expect(last_response.status).to eq(200)
         body = json_decode(last_response.body)
         expect(body.size).to eq(1)
+      end
+
+      context "when the presentation_id is missing" do
+        it "returns no questions" do
+          post "/presentations", { name: "MyPresentation" }
+          expect(last_response.status).to eq(201)
+          get "/questions"
+          expect(last_response.status).to eq(200)
+          expect(last_response.body).to eq("[]")
+        end
       end
     end
   end

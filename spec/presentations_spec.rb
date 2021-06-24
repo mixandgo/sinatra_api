@@ -18,7 +18,7 @@ RSpec.describe "Presentations" do
 
       it "creates a presentation" do
         post "/presentations", { name: "MyPresentation" }
-        expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(201)
         body = json_decode(last_response.body)
         expect(body).to match(
           "id" => (be > 0),

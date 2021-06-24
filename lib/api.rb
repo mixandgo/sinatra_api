@@ -71,11 +71,13 @@ class Api < Sinatra::Base
 
   post "/presentations" do
     authenticate!
+    status 201
     Presentation.create(name: params["name"]).to_json
   end
 
   get "/questions" do
     authenticate!
+    return [].to_json if params["presentation_id"].nil?
 
     presentation = Presentation.where(id: params["presentation_id"]).first
     presentation.questions.to_json
