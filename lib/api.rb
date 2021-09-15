@@ -1,4 +1,5 @@
 require "sinatra/base"
+require "sinatra/cors"
 require "jwt"
 require "sequel"
 require "rack/contrib"
@@ -38,10 +39,15 @@ require_relative "models/option"
 require_relative "models/vote"
 
 class Api < Sinatra::Base
+  register Sinatra::Cors
   use Rack::JSONBodyParser
 
   set :default_content_type, "application/json"
   set :logging, true
+  set :allow_origin, "*"
+  set :allow_methods, "GET,HEAD,POST"
+  set :allow_headers, "Authorization,Access-Control-Allow-Origin,content-type,if-modified-since"
+  set :expose_headers, "location,link"
 
   configure :test do
     set :dump_errors, true
@@ -53,8 +59,13 @@ class Api < Sinatra::Base
     {}.to_json
   end
 
+  get "/users/me" do
+    authenticate!
+    { email: "jdoe@email.com" }.to_json
+  end
+
   post "/auth" do
-    if params["username"].nil? || params["password"].nil?
+    if params["username"].nil? || params["password"].nil? || params["password"] != "secret"
       halt 500, { errors: ["Missing username/password params"] }.to_json
     end
 

@@ -7,6 +7,7 @@ gem "jwt"
 gem "sequel"
 gem "sqlite3"
 gem "rack-contrib"
+gem "sinatra-cors"
 
 group :development do
   gem "pry-byebug"

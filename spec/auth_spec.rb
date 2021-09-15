@@ -13,7 +13,12 @@ RSpec.describe "Auth" do
       body = json_decode(last_response.body)
       expect(body["errors"]).to include("Missing username/password params")
 
-      post "/auth", { username: "password" }
+      post "/auth", { password: "secret" }
+      expect(last_response.status).to eq(500)
+      body = json_decode(last_response.body)
+      expect(body["errors"]).to include("Missing username/password params")
+
+      post "/auth", { username: "joe", password: "not_secret" }
       expect(last_response.status).to eq(500)
       body = json_decode(last_response.body)
       expect(body["errors"]).to include("Missing username/password params")
